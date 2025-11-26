@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detector de Fracturas - Apple Material UI</title>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .container {
+        max-width: 900px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px) saturate(180%);
+        padding: 40px;
+        border-radius: 32px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(0, 188, 212, 0.2) inset;
+        animation: fadeIn 0.6s ease-out;
+        margin-bottom: 40px;
+        border: 2px solid rgba(0, 188, 212, 0.1);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .header-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        display: block;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    h1 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #0d47a1;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+        color: #546e7a;
+        font-size: 17px;
+        line-height: 1.5;
+    }
+
+    .upload-zone {
+        border: 3px dashed #b0bec5;
+        padding: 60px 30px;
+        border-radius: 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(236, 239, 241, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-zone::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .upload-zone:hover::before {
+        left: 100%;
+    }
+
+    .upload-zone:hover {
+        border-color: #00bcd4;
+        background: rgba(0, 188, 212, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .upload-zone.dragover {
+        border-color: #00acc1;
+        background: rgba(0, 188, 212, 0.15);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: #00bcd4;
+    }
+
+    .upload-text {
+        font-size: 19px;
+        font-weight: 600;
+        color: #263238;
+        margin-bottom: 8px;
+    }
+
+    .upload-subtext {
+        color: #607d8b;
+        font-size: 15px;
+    }
+
+    #preview, #result_img {
+        width: 100%;
+        margin-top: 24px;
+        border-radius: 20px;
+        display: none;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        animation: imageAppear 0.5s ease-out;
+    }
+
+    @keyframes imageAppear {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .btn {
+        width: 100%;
+        margin-top: 32px;
+        background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+        border: none;
+        padding: 18px;
+        border-radius: 16px;
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 8px 24px rgba(2, 136, 209, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(2, 136, 209, 0.5);
+        background: linear-gradient(135deg, #0277bd 0%, #004c8c 100%);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn:disabled {
+        background: #b0bec5;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .btn-text {
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        margin-top: 24px;
+    }
+
+    .spinner {
+        border: 3px solid rgba(2, 136, 209, 0.2);
+        border-top: 3px solid #0288d1;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+        color: #546e7a;
+        font-size: 16px;
+    }
+
+    .result-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(236, 239, 241, 0.95) 100%);
+        backdrop-filter: blur(12px);
+        padding: 28px;
+        border-radius: 24px;
+        margin-top: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 188, 212, 0.2);
+        animation: slideUp 0.4s ease-out;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .no-fracture-card {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(129, 199, 132, 0.08) 100%);
+        border: 2px solid rgba(76, 175, 80, 0.4);
+        text-align: center;
+        padding: 40px 28px;
+    }
+
+    .no-fracture-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        animation: bounce 1s ease-in-out;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .no-fracture-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2e7d32;
+        margin-bottom: 12px;
+    }
+
+    .no-fracture-text {
+        font-size: 16px;
+        color: #455a64;
+        line-height: 1.6;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .result-card h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #01579b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(0, 188, 212, 0.1);
+    }
+
+    .result-item:last-child {
+        border-bottom: none;
+    }
+
+    .result-label {
+        font-weight: 600;
+        color: #263238;
+        font-size: 16px;
+    }
+
+    .result-value {
+        color: #546e7a;
+        font-size: 16px;
+    }
+
+    .confidence-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(2, 136, 209, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0288d1 0%, #00acc1 100%);
+        border-radius: 10px;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px rgba(2, 136, 209, 0.5);
+    }
+
+    .alert {
+        padding: 16px 20px;
+        border-radius: 16px;
+        margin-top: 24px;
+        display: none;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    .alert-error {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid rgba(244, 67, 54, 0.3);
+        color: #c62828;
+    }
+
+    .alert-success {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        color: #2e7d32;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    /* Chatbot Styles */
+    .chatbot-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+    }
+
+    .chatbot-toggle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+        border: none;
+        box-shadow: 0 8px 24px rgba(2, 136, 209, 0.4);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: white;
+    }
+
+    .chatbot-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(2, 136, 209, 0.5);
+    }
+
+    .chatbot-toggle.active {
+        transform: rotate(180deg);
+    }
+
+    .chatbot-window {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 380px;
+        height: 550px;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px) saturate(180%);
+        border-radius: 24px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(0, 188, 212, 0.2) inset;
+        border: 2px solid rgba(0, 188, 212, 0.1);
+        display: none;
+        flex-direction: column;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    .chatbot-window.active {
+        display: flex;
+    }
+
+    .chatbot-header {
+        background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 22px 22px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chatbot-header-icon {
+        font-size: 28px;
+    }
+
+    .chatbot-header-text h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .chatbot-header-text p {
+        margin: 4px 0 0 0;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .chatbot-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .chatbot-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chatbot-messages::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+    }
+
+    .chatbot-messages::-webkit-scrollbar-thumb {
+        background: rgba(2, 136, 209, 0.3);
+        border-radius: 10px;
+    }
+
+    .chatbot-messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(2, 136, 209, 0.5);
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 14px;
+        line-height: 1.5;
+        animation: messageAppear 0.3s ease-out;
+    }
+
+    @keyframes messageAppear {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message.user {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #0288d1 0%, #00acc1 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.bot {
+        align-self: flex-start;
+        background: rgba(236, 239, 241, 0.7);
+        color: #263238;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message.typing {
+        padding: 16px;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #0288d1;
+        animation: typingAnimation 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typingAnimation {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .chatbot-input-area {
+        padding: 16px;
+        border-top: 1px solid rgba(0, 188, 212, 0.1);
+        display: flex;
+        gap: 10px;
+    }
+
+    .chatbot-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid rgba(0, 188, 212, 0.2);
+        border-radius: 16px;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: all 0.3s;
+        background: rgba(236, 239, 241, 0.3);
+    }
+
+    .chatbot-input:focus {
+        border-color: #0288d1;
+        background: white;
+    }
+
+    .chatbot-send-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
+    }
+
+    .chatbot-send-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(2, 136, 209, 0.4);
+    }
+
+    .chatbot-send-btn:disabled {
+        background: #b0bec5;
+        cursor: not-allowed;
+        transform: scale(1);
+    }
+
+    @media (max-width: 768px) {
+        .chatbot-container {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .chatbot-window {
+            width: calc(100vw - 40px);
+            height: calc(100vh - 140px);
+            bottom: 70px;
+            right: -10px;
+        }
+
+        .chatbot-toggle {
+            width: 56px;
+            height: 56px;
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 20px 16px;
+        }
+
+        .card {
+            padding: 28px 20px;
+            border-radius: 24px;
+        }
+
+        h1 {
+            font-size: 26px;
+        }
+
+        .header-icon {
+            font-size: 48px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+        }
+
+        .upload-zone {
+            padding: 40px 20px;
+        }
+
+        .btn {
+            font-size: 16px;
+            padding: 16px;
+        }
+
+        .result-card {
+            padding: 20px;
+        }
+
+        .no-fracture-icon {
+            font-size: 48px;
+        }
+
+        .no-fracture-title {
+            font-size: 22px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <span class="header-icon">🩺</span>
+            <h1>Detector de Fracturas</h1>
+            <p class="subtitle">Análisis inteligente de radiografías con IA avanzada</p>
+        </div>
+
+        <label class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Haz clic para subir una radiografía</div>
+            <div class="upload-subtext">o arrastra y suelta aquí</div>
+            <div class="upload-subtext" style="margin-top: 8px; font-size: 13px;">JPG, PNG • Máx. 10MB</div>
+            <input type="file" id="file_input" accept="image/*">
+        </label>
+
+        <img id="preview" alt="Vista previa">
+        
+        <button class="btn" id="analyzeBtn" onclick="sendImage()" disabled>
+            <span class="btn-text">Analizar imagen</span>
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Analizando radiografía...</div>
+        </div>
+
+        <div class="alert alert-error" id="errorAlert"></div>
+        <div class="alert alert-success" id="successAlert"></div>
+
+        <img id="result_img" alt="Resultado del análisis">
+        <div id="result_container"></div>
+    </div>
+</div>
+
+<!-- Chatbot -->
+<div class="chatbot-container">
+    <button class="chatbot-toggle" id="chatbotToggle" onclick="toggleChatbot()">
+        💬
+    </button>
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+            <div class="chatbot-header-icon">🤖</div>
+            <div class="chatbot-header-text">
+                <h3>Asistente Médico</h3>
+                <p>Pregúntame sobre fracturas</p>
+            </div>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                ¡Hola! Soy tu asistente virtual. Puedo ayudarte con información sobre fracturas, tipos de lesiones óseas y tratamientos. ¿En qué puedo ayudarte?
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input 
+                type="text" 
+                class="chatbot-input" 
+                id="chatbotInput" 
+                placeholder="Escribe tu pregunta..."
+                onkeypress="handleChatbotKeyPress(event)"
+            >
+            <button class="chatbot-send-btn" id="chatbotSendBtn" onclick="sendChatMessage()">
+                ➤
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_URL = "http://localhost:8000/detect_fracture_image";
+
+const translations = {
+    "messed_up_angle": "Ángulo alterado",
+    "fracture": "Fractura",
+    "crack": "Fisura",
+    "broken_bone": "Hueso roto",
+    "dislocation": "Dislocación"
+};
+
+function translateLabel(label) {
+    return translations[label] || label;
+}
+
+const fileInput = document.getElementById("file_input");
+const uploadZone = document.getElementById("uploadZone");
+const preview = document.getElementById("preview");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const loading = document.getElementById("loading");
+const errorAlert = document.getElementById("errorAlert");
+const successAlert = document.getElementById("successAlert");
+
+// Drag and drop
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, () => {
+        uploadZone.classList.add('dragover');
+    }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, () => {
+        uploadZone.classList.remove('dragover');
+    }, false);
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    fileInput.files = files;
+    handleFile(files[0]);
+}, false);
+
+// Vista previa
+fileInput.addEventListener("change", function () {
+    if (this.files.length) {
+        handleFile(this.files[0]);
+    }
+});
+
+function handleFile(file) {
+    if (!file.type.startsWith('image/')) {
+        showError("Por favor, selecciona un archivo de imagen válido.");
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        showError("El archivo es demasiado grande. Máximo 10MB.");
+        return;
+    }
+
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+    analyzeBtn.disabled = false;
+    hideAlerts();
+}
+
+async function sendImage() {
+    if (!fileInput.files.length) {
+        showError("Debes seleccionar una imagen primero.");
+        return;
+    }
+
+    hideAlerts();
+    document.getElementById("result_container").innerHTML = "";
+    document.getElementById("result_img").style.display = "none";
+
+    analyzeBtn.disabled = true;
+    loading.style.display = "block";
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    try {
+        const response = await fetch(API_URL, { 
+            method: "POST", 
+            body: formData 
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al procesar la imagen");
+        }
+
+        const data = await response.json();
+
+        loading.style.display = "none";
+        analyzeBtn.disabled = false;
+
+        const resultImg = document.getElementById("result_img");
+        resultImg.src = "data:image/jpeg;base64," + data.processed_image.base64_data;
+        resultImg.style.display = "block";
+
+        renderDetections(data.detections);
+        
+        if (data.detections.length > 0) {
+            showSuccess("Análisis completado exitosamente");
+        } else {
+            showSuccess("No se detectaron fracturas en la imagen");
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        loading.style.display = "none";
+        analyzeBtn.disabled = false;
+        showError("Error al analizar la imagen. Verifica que el servidor esté activo.");
+    }
+}
+
+function renderDetections(detections) {
+    const container = document.getElementById("result_container");
+    container.innerHTML = "";
+
+    if (detections.length === 0) {
+        container.innerHTML = `
+            <div class="result-card no-fracture-card">
+                <div class="no-fracture-icon">✅</div>
+                <div class="no-fracture-title">¡Radiografía Normal!</div>
+                <div class="no-fracture-text">
+                    No se detectaron fracturas, fisuras o alteraciones significativas en la imagen analizada.
+                    <br><br>
+                    <strong>Resultado:</strong> La estructura ósea aparenta estar en buen estado.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    detections.forEach((det, index) => {
+        const translatedLabel = translateLabel(det.class_name);
+        const confidence = det.confidence * 100;
+
+        const card = `
+            <div class="result-card" style="animation-delay: ${index * 0.1}s">
+                <h3>🔍 Detección ${index + 1}</h3>
+                <div class="result-item">
+                    <span class="result-label">Tipo de hallazgo</span>
+                    <span class="result-value">${translatedLabel}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Nivel de confianza</span>
+                    <span class="result-value">${confidence.toFixed(1)}%</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: ${confidence}%"></div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML += card;
+    });
+}
+
+function showError(message) {
+    errorAlert.textContent = "⚠️ " + message;
+    errorAlert.style.display = "block";
+    successAlert.style.display = "none";
+}
+
+function showSuccess(message) {
+    successAlert.textContent = "✓ " + message;
+    successAlert.style.display = "block";
+    errorAlert.style.display = "none";
+}
+
+function hideAlerts() {
+    errorAlert.style.display = "none";
+    successAlert.style.display = "none";
+}
+
+// Chatbot Functions
+const CHATBOT_API_URL = "http://localhost:8000/ask_assistant";
+
+function toggleChatbot() {
+    const chatbotWindow = document.getElementById("chatbotWindow");
+    const chatbotToggle = document.getElementById("chatbotToggle");
+    
+    chatbotWindow.classList.toggle("active");
+    chatbotToggle.classList.toggle("active");
+    
+    if (chatbotWindow.classList.contains("active")) {
+        document.getElementById("chatbotInput").focus();
+    }
+}
+
+function handleChatbotKeyPress(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendChatMessage();
+    }
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById("chatbotInput");
+    const sendBtn = document.getElementById("chatbotSendBtn");
+    const messagesContainer = document.getElementById("chatbotMessages");
+    
+    const question = input.value.trim();
+    
+    if (!question) return;
+    
+    // Add user message
+    addChatMessage(question, "user");
+    input.value = "";
+    
+    // Show typing indicator
+    const typingId = addTypingIndicator();
+    sendBtn.disabled = true;
+    
+    try {
+        const response = await fetch(CHATBOT_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ question: question })
+        });
+        
+        if (!response.ok) {
+            throw new Error("Error al obtener respuesta del asistente");
+        }
+        
+        const data = await response.json();
+        
+        // Remove typing indicator
+        removeTypingIndicator(typingId);
+        
+        // Add bot response
+        addChatMessage(data.respuesta || "Lo siento, no tengo información sobre eso.", "bot");
+        
+    } catch (error) {
+        console.error("Error:", error);
+        removeTypingIndicator(typingId);
+        addChatMessage("Lo siento, ocurrió un error al procesar tu pregunta. Verifica que el servidor esté activo.", "bot");
+    } finally {
+        sendBtn.disabled = false;
+        input.focus();
+    }
+}
+
+function addChatMessage(text, type) {
+    const messagesContainer = document.getElementById("chatbotMessages");
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = text;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function addTypingIndicator() {
+    const messagesContainer = document.getElementById("chatbotMessages");
+    const typingDiv = document.createElement("div");
+    const typingId = "typing-" + Date.now();
+    typingDiv.id = typingId;
+    typingDiv.className = "message bot typing";
+    typingDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+    `;
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return typingId;
+}
+
+function removeTypingIndicator(typingId) {
+    const typingDiv = document.getElementById(typingId);
+    if (typingDiv) {
+        typingDiv.remove();
+    }
+}
+</script>
+
+</body>
+</html>
